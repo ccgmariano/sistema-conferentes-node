@@ -8,10 +8,35 @@ const cookieJar = new tough.CookieJar();
 
 module.exports = {
   async login(cpf, senha) {
-    return {
-      ok: true,
-      msg: "Função de login chamada com sucesso.",
-      recebido: { cpf, senha }
-    };
+    try {
+      const url = "https://poseidon.pimb.net.br/";
+
+      const response = await axios.post(
+        url,
+        new URLSearchParams({
+          cpf: cpf,
+          senha: senha
+        }),
+        {
+          jar: cookieJar,
+          withCredentials: true,
+          maxRedirects: 0, // não seguir redirect ainda
+          validateStatus: (s) => s === 200 || s === 302
+        }
+      );
+
+      return {
+        ok: true,
+        statusHttp: response.status,
+        headers: response.headers,
+        cookies: await cookieJar.getCookies(url)
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        erro: err.message,
+        detalhe: err.response ? err.response.status : "sem resposta"
+      };
+    }
   }
 };
