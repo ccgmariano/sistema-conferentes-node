@@ -1,8 +1,13 @@
+const service = require("./poseidonservice");
+
 module.exports = {
-  teste(req, res) {
+  async teste(req, res) {
+    const r = await service.login("cpf-teste", "senha-teste");
+
     res.json({
       status: "OK",
-      msg: "Rota Poseidon funcionando."
+      msg: "Controller funcionando.",
+      retornoService: r
     });
   }
 };
