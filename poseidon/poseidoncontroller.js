@@ -3,7 +3,10 @@ const service = require("./poseidonservice");
 module.exports = {
   async teste(req, res) {
     try {
-      const r = await service.login("cpf-teste", "senha-teste");
+      const r = await service.login(
+        process.env.POSEIDON_CPF,
+        process.env.POSEIDON_SENHA
+      );
 
       res.json({
         status: "OK",
