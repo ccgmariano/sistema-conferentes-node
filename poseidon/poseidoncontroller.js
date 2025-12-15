@@ -1,4 +1,5 @@
 const service = require("./poseidonservice");
+const { extrairPesagens } = require("./pesagensParser");
 
 module.exports = {
 
@@ -41,10 +42,21 @@ module.exports = {
         recinto: ""
       });
 
+      if (!resultado.ok) {
+        return res.status(500).json({
+          status: "ERRO",
+          msg: "Consulta falhou",
+          detalhe: resultado.erro
+        });
+      }
+
+      // 3) parse do HTML → JSON estruturado
+      const dados = extrairPesagens(resultado.html);
+
       res.json({
         status: "OK",
-        msg: "Consulta de pesagens executada.",
-        retornoService: resultado
+        total: dados.length,
+        dados
       });
 
     } catch (err) {
