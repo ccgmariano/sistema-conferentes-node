@@ -1,11 +1,11 @@
 const axios = require("axios").default;
 const tough = require("tough-cookie");
 const { wrapper } = require("axios-cookiejar-support");
+const cheerio = require("cheerio");
 
 // CookieJar global para manter sessão
 const jar = new tough.CookieJar();
 const client = wrapper(axios.create({ jar, withCredentials: true }));
-
 
 // ==========================================================
 //  LOGIN NO POSEIDON
@@ -25,8 +25,8 @@ async function loginPoseidon(cpf, senha) {
             "https://poseidon.pimb.net.br/",
             new URLSearchParams({
                 _method: "POST",
-                cpf: cpf,
-                senha: senha,
+                cpf,
+                senha,
                 uuid: "",
                 hostname: ""
             }),
@@ -43,7 +43,6 @@ async function loginPoseidon(cpf, senha) {
             }
         );
 
-        // 3) Coletar cookie final (sessão autenticada)
         const cookies = await jar.getCookies("https://poseidon.pimb.net.br/");
 
         return {
@@ -61,9 +60,8 @@ async function loginPoseidon(cpf, senha) {
     }
 }
 
-
 // ==========================================================
-//  CONSULTA DE PESAGENS (REPORT / CONSULTAS VIEW 83)
+//  CONSULTA DE PESAGENS + PARSE DA TABELA
 // ==========================================================
 async function consultarPesagens(parametros) {
     try {
@@ -74,9 +72,9 @@ async function consultarPesagens(parametros) {
             cpf: parametros.cpf,
             data_inicio: parametros.data_inicio,
             data_fim: parametros.data_fim,
-            navio: parametros.navio,
-            produto: parametros.produto,
-            recinto: parametros.recinto
+            navio: parametros.navio || "",
+            produto: parametros.produto || "",
+            recinto: parametros.recinto || ""
         });
 
         const response = await client.post(url, payload.toString(), {
@@ -89,9 +87,41 @@ async function consultarPesagens(parametros) {
             }
         });
 
+        // ==================================================
+        // PARSE DO HTML
+        // ==================================================
+        const $ = cheerio.load(response.data);
+        const registros = [];
+
+        $("table tbody tr").each((_, tr) => {
+            const td = $(tr).find("td");
+
+            if (td.length < 15) return; // ignora linhas inválidas
+
+            registros.push({
+                tipo: $(td[0]).text().trim(),
+                empresa: $(td[1]).text().trim(),
+                codigo_pesagem: $(td[2]).text().trim(),
+                placa: $(td[3]).text().trim(),
+                entrada: $(td[4]).text().trim(),
+                saida: $(td[5]).text().trim(),
+                produto: $(td[6]).text().trim(),
+                operacao: $(td[7]).text().trim(),
+                peso_tara: $(td[8]).text().trim(),
+                data_tara: $(td[9]).text().trim(),
+                peso_bruto: $(td[10]).text().trim(),
+                data_bruto: $(td[11]).text().trim(),
+                ticket_id: $(td[12]).text().trim(),
+                peso_liquido: $(td[14]).text().trim(),
+                navio: $(td[15]).text().trim(),
+                recinto: $(td[16]).text().trim()
+            });
+        });
+
         return {
             ok: true,
-            html: response.data // HTML completo retornado pelo servidor
+            total: registros.length,
+            registros
         };
 
     } catch (err) {
@@ -102,9 +132,8 @@ async function consultarPesagens(parametros) {
     }
 }
 
-
 // ==========================================================
-//  EXPORTAÇÃO DAS FUNÇÕES
+//  EXPORTAÇÃO
 // ==========================================================
 module.exports = {
     loginPoseidon,
