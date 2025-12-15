@@ -1,14 +1,19 @@
 {
   "name": "sistema-conferentes-node",
   "version": "1.0.0",
+  "description": "Serviço Node para integração com Poseidon",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.0",
-    "axios-cookiejar-support": "^5.0.0",
-    "tough-cookie": "^4.1.3"
+    "axios": "^1.6.8",
+    "axios-cookiejar-support": "^5.0.1",
+    "tough-cookie": "^4.1.3",
+    "cheerio": "^1.0.0-rc.12",
+    "express": "^4.19.2"
   }
 }
