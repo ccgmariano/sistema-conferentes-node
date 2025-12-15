@@ -1,71 +1,77 @@
 const service = require("./poseidonservice");
-const { extrairPesagens } = require("./pesagensParser");
+
+// ==========================================================
+//  ROTA DE TESTE (diagnóstico)
+// ==========================================================
+async function teste(req, res) {
+  try {
+    const r = await service.loginPoseidon(
+      process.env.POSEIDON_CPF,
+      process.env.POSEIDON_SENHA
+    );
+
+    res.json({
+      status: "OK",
+      msg: "Controller funcionando.",
+      retornoService: r
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "ERRO",
+      msg: "Falha no teste.",
+      detalhe: err.message
+    });
+  }
+}
+
+// ==========================================================
+//  ENDPOINT OFICIAL DE PESAGENS
+// ==========================================================
+async function pesagens(req, res) {
+  try {
+    const {
+      data_inicio,
+      data_fim,
+      navio,
+      produto,
+      recinto
+    } = req.body;
+
+    // validação mínima
+    if (!data_inicio || !data_fim) {
+      return res.status(400).json({
+        ok: false,
+        erro: "data_inicio e data_fim são obrigatórios"
+      });
+    }
+
+    // garante sessão ativa no Poseidon
+    await service.loginPoseidon(
+      process.env.POSEIDON_CPF,
+      process.env.POSEIDON_SENHA
+    );
+
+    // consulta de pesagens
+    const resultado = await service.consultarPesagens({
+      cpf: process.env.POSEIDON_CPF,
+      data_inicio,
+      data_fim,
+      navio,
+      produto,
+      recinto
+    });
+
+    res.json(resultado);
+
+  } catch (err) {
+    res.status(500).json({
+      ok: false,
+      erro: err.message
+    });
+  }
+}
 
 module.exports = {
-
-  async teste(req, res) {
-    try {
-      const retorno = await service.loginPoseidon(
-        process.env.POSEIDON_CPF,
-        process.env.POSEIDON_SENHA
-      );
-
-      res.json({
-        status: "OK",
-        msg: "Controller funcionando.",
-        retornoService: retorno
-      });
-    } catch (err) {
-      res.status(500).json({
-        status: "ERRO",
-        msg: "Falha ao chamar o service.",
-        detalhe: err.message
-      });
-    }
-  },
-
-  async pesagens(req, res) {
-    try {
-      // 1) login (garante sessão ativa)
-      await service.loginPoseidon(
-        process.env.POSEIDON_CPF,
-        process.env.POSEIDON_SENHA
-      );
-
-      // 2) consulta de pesagens (parâmetros fixos por enquanto)
-      const resultado = await service.consultarPesagens({
-        cpf: process.env.POSEIDON_CPF,
-        data_inicio: "10/12/2025 09:15",
-        data_fim: "16/12/2025 09:15",
-        navio: "doro",
-        produto: "",
-        recinto: ""
-      });
-
-      if (!resultado.ok) {
-        return res.status(500).json({
-          status: "ERRO",
-          msg: "Consulta falhou",
-          detalhe: resultado.erro
-        });
-      }
-
-      // 3) parse do HTML → JSON estruturado
-      const dados = extrairPesagens(resultado.html);
-
-      res.json({
-        status: "OK",
-        total: dados.length,
-        dados
-      });
-
-    } catch (err) {
-      res.status(500).json({
-        status: "ERRO",
-        msg: "Erro ao consultar pesagens.",
-        detalhe: err.message
-      });
-    }
-  }
-
+  teste,
+  pesagens
 };
