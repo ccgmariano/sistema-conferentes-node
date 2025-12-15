@@ -14,4 +14,7 @@ router.get("/health", (req, res) => {
 // rota de teste do login Poseidon
 router.get("/teste", controller.teste);
 
+// rota de consulta de pesagens
+router.get("/pesagens", controller.pesagens);
+
 module.exports = router;
