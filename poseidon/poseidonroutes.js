@@ -3,18 +3,12 @@ const router = express.Router();
 
 const controller = require("./poseidoncontroller");
 
-// rota de verificação (health check)
-router.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    msg: "Poseidon routes ativas."
-  });
-});
-
-// rota de teste do login Poseidon
+// rota de teste (diagnóstico)
 router.get("/teste", controller.teste);
 
-// rota de consulta de pesagens
-router.get("/pesagens", controller.pesagens);
+// ==========================================================
+//  ENDPOINT OFICIAL DE PESAGENS (CONTRATO DEFINIDO)
+// ==========================================================
+router.post("/pesagens", controller.pesagens);
 
 module.exports = router;
