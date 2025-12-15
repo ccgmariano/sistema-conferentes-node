@@ -20,7 +20,7 @@ module.exports = {
         {
           jar: cookieJar,
           withCredentials: true,
-          maxRedirects: 0, // não seguir redirect ainda
+          maxRedirects: 0,
           validateStatus: (s) => s === 200 || s === 302
         }
       );
@@ -29,7 +29,8 @@ module.exports = {
         ok: true,
         statusHttp: response.status,
         headers: response.headers,
-        cookies: await cookieJar.getCookies(url)
+        cookies: await cookieJar.getCookies(url),
+        html: response.data        // <<< AQUI O HTML É RETORNADO
       };
     } catch (err) {
       return {
