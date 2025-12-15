@@ -11,8 +11,8 @@ module.exports = {
     try {
       const url = "https://poseidon.pimb.net.br/";
 
-      // Campos que o formulário exige
       const form = new URLSearchParams({
+        _method: "POST",   // incluído
         cpf: cpf,
         senha: senha,
         uuid: "",
@@ -22,15 +22,22 @@ module.exports = {
       const response = await axios.post(url, form, {
         jar: cookieJar,
         withCredentials: true,
-        maxRedirects: 0,
-        validateStatus: (s) => s === 200 || s === 302
+        maxRedirects: 5,   // seguir redirecionamentos
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        },
+        validateStatus: () => true // permitir qualquer status
       });
+
+      const cookies = await cookieJar.getCookies(url);
 
       return {
         ok: true,
         statusHttp: response.status,
         headers: response.headers,
-        cookies: await cookieJar.getCookies(url),
+        cookies: cookies,
         html: response.data
       };
     } catch (err) {
