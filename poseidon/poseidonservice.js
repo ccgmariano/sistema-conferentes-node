@@ -11,26 +11,27 @@ module.exports = {
     try {
       const url = "https://poseidon.pimb.net.br/";
 
-      const response = await axios.post(
-        url,
-        new URLSearchParams({
-          cpf: cpf,
-          senha: senha
-        }),
-        {
-          jar: cookieJar,
-          withCredentials: true,
-          maxRedirects: 0,
-          validateStatus: (s) => s === 200 || s === 302
-        }
-      );
+      // Campos que o formulário exige
+      const form = new URLSearchParams({
+        cpf: cpf,
+        senha: senha,
+        uuid: "",
+        hostname: ""
+      });
+
+      const response = await axios.post(url, form, {
+        jar: cookieJar,
+        withCredentials: true,
+        maxRedirects: 0,
+        validateStatus: (s) => s === 200 || s === 302
+      });
 
       return {
         ok: true,
         statusHttp: response.status,
         headers: response.headers,
         cookies: await cookieJar.getCookies(url),
-        html: response.data        // <<< AQUI O HTML É RETORNADO
+        html: response.data
       };
     } catch (err) {
       return {
