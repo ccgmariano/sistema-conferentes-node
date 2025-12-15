@@ -3,7 +3,7 @@ const service = require("./poseidonservice");
 module.exports = {
   async teste(req, res) {
     try {
-      const r = await service.login(
+      const retorno = await service.loginPoseidon(
         process.env.POSEIDON_CPF,
         process.env.POSEIDON_SENHA
       );
@@ -11,7 +11,7 @@ module.exports = {
       res.json({
         status: "OK",
         msg: "Controller funcionando.",
-        retornoService: r
+        retornoService: retorno
       });
     } catch (err) {
       res.status(500).json({
